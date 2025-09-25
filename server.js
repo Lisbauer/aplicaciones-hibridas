@@ -1,3 +1,5 @@
+// hice otra version del index.js pero usando ES Modules por unos errores, import/export, archivo para borrar
+
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
