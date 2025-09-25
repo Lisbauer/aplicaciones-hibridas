@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JapanPlacesAPI</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background-color: #fff0f5; }
+    h1, h2, h3 { color: #d63384; }
+    .place, .user { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; border-radius: 5px; cursor: pointer; background-color: #fff; transition: 0.2s; }
+    .place:hover, .user:hover { box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    .place img { max-width: 200px; display: block; margin-bottom: 10px; border-radius: 5px; }
+    .user-details, .result { margin-top: 5px; font-size: 0.9em; color: #555; display: none; }
+    .api-span { color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-right: 5px; }
+    .GET { background-color: #00bfff; }
+    .POST { background-color: #00ff7f; }
+    .PUT { background-color: #9370db; }
+    .DELETE { background-color: #ff4c4c; }
+    section#api-docs div { margin-bottom: 5px; }
+    footer { display: flex; justify-content: center; align-items: center; gap: 20px; background-color: #ffe6f0; color: #d63384; padding: 15px 0; border-top: 2px solid #ffb6c1; font-weight: bold; font-family: Arial, sans-serif; }
+    footer span { font-size: 0.95em; }
+    button { margin-right: 5px; margin-top: 2px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>JapanPlacesAPI</h1>
+
+  <h2>Lugares turísticos en Japón:</h2>
+  <div id="places-container"></div>
+
+  <h2>Usuarios registrados:</h2>
+  <div id="users-container"></div>
+
+  <section id="api-docs">
+    <h2>Documentación de la API</h2>
+
+    <h3>Usuarios</h3>
+    <div>
+      <span class="api-span GET">GET</span>
+      <a href="http://localhost:3000/api/v1/users/" target="_blank">/api/v1/users/</a>
+    </div>
+    <div id="users-doc-id"></div>
+    <div>
+      <span class="api-span POST">POST</span>
+      <a href="http://localhost:3000/api/v1/users/" target="_blank">/api/v1/users/</a>
+    </div>
+
+    <h3>Lugares de Japón</h3>
+    <div>
+      <span class="api-span GET">GET</span>
+      <a href="http://localhost:3000/api/v1/places/" target="_blank">/api/v1/places/</a>
+    </div>
+    <div id="places-doc-id"></div>
+  </section>
+
+  <footer>
+    <span>Lisa Bauer</span>
+    <span>Aplicaciones Híbridas</span>
+    <span>Jonathan Cruz</span>
+    <span>DWN4AV</span>
+  </footer>
+
+  <script>
+    async function fetchUsers() {
+      const container = document.getElementById('users-container');
+      const docIdContainer = document.getElementById('users-doc-id');
+      container.innerHTML = '';
+      docIdContainer.innerHTML = '';
+
+      try {
+        const res = await fetch('/api/v1/users');
+        const users = await res.json();
+
+        users.forEach(user => {
+          // Render usuarios en la página
+          const div = document.createElement('div');
+          div.className = 'user';
+          div.innerHTML = `
+            <strong>${user.name}</strong>
+            <div class="user-details">
+              <p><strong>Email:</strong> ${user.email}</p>
+              <p><strong>ID:</strong> ${user._id}</p>
+            </div>
+          `;
+          div.addEventListener('click', () => {
+            const details = div.querySelector('.user-details');
+            details.style.display = details.style.display === 'none' ? 'block' : 'none';
+          });
+          container.appendChild(div);
+
+          // Documentación dinámica con botones
+          const docDiv = document.createElement('div');
+
+          const getBtn = document.createElement('button');
+          getBtn.textContent = 'GET /api/v1/users/:id';
+          getBtn.className = 'GET';
+          getBtn.onclick = async () => {
+            const res = await fetch(`/api/v1/users/${user._id}`);
+            const data = await res.json();
+            showResult(`user-result-${user._id}`, data);
+          };
+
+          const putBtn = document.createElement('button');
+          putBtn.textContent = 'PUT /api/v1/users/:id';
+          putBtn.className = 'PUT';
+          putBtn.onclick = async () => {
+            const res = await fetch(`/api/v1/users/${user._id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ name: 'Nuevo Nombre' })
+            });
+            const data = await res.json();
+            showResult(`user-result-${user._id}`, data);
+          };
+
+          const delBtn = document.createElement('button');
+          delBtn.textContent = 'DELETE /api/v1/users/:id';
+          delBtn.className = 'DELETE';
+          delBtn.onclick = async () => {
+            const res = await fetch(`/api/v1/users/${user._id}`, { method: 'DELETE' });
+            const data = await res.json();
+            showResult(`user-result-${user._id}`, data);
+          };
+
+          const pre = document.createElement('pre');
+          pre.id = `user-result-${user._id}`;
+          pre.className = 'result';
+
+          docDiv.appendChild(getBtn);
+          docDiv.appendChild(putBtn);
+          docDiv.appendChild(delBtn);
+          docDiv.appendChild(pre);
+
+          docIdContainer.appendChild(docDiv);
+        });
+      } catch (err) {
+        console.error(err);
+        container.innerText = 'Error cargando usuarios';
+      }
+    }
+
+    async function fetchPlaces() {
+      const container = document.getElementById('places-container');
+      const docIdContainer = document.getElementById('places-doc-id');
+      container.innerHTML = '';
+      docIdContainer.innerHTML = '';
+
+      try {
+        const res = await fetch('/api/v1/places');
+        const places = await res.json();
+
+        places.forEach(place => {
+          // Render lugares
+          const div = document.createElement('div');
+          div.className = 'place';
+          div.innerHTML = `
+            <h3>${place.name}</h3>
+            <p><strong>Ubicación:</strong> ${place.location}</p>
+            <p><strong>Categoría:</strong> ${place.category}</p>
+            <p>${place.description}</p>
+            ${place.image ? `<img src="${place.image}" alt="${place.name}">` : ''}
+          `;
+          container.appendChild(div);
+
+          // Documentación GET por id
+          const docDiv = document.createElement('div');
+          const getBtn = document.createElement('button');
+          getBtn.textContent = 'GET /api/v1/places/:id';
+          getBtn.className = 'GET';
+          getBtn.onclick = async () => {
+            const res = await fetch(`/api/v1/places/${place._id}`);
+            const data = await res.json();
+            showResult(`place-result-${place._id}`, data);
+          };
+
+          const pre = document.createElement('pre');
+          pre.id = `place-result-${place._id}`;
+          pre.className = 'result';
+
+          docDiv.appendChild(getBtn);
+          docDiv.appendChild(pre);
+          docIdContainer.appendChild(docDiv);
+        });
+      } catch (err) {
+        console.error(err);
+        container.innerText = 'Error cargando lugares';
+      }
+    }
+
+    function showResult(id, data) {
+      const pre = document.getElementById(id);
+      pre.style.display = 'block';
+      pre.innerText = JSON.stringify(data, null, 2);
+    }
+
+    fetchUsers();
+    fetchPlaces();
+  </script>
+</body>
+</html>
