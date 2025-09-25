@@ -72,7 +72,7 @@
         const users = await res.json();
 
         users.forEach(user => {
-          // Render usuarios en la página
+
           const div = document.createElement('div');
           div.className = 'user';
           div.innerHTML = `
@@ -88,7 +88,7 @@
           });
           container.appendChild(div);
 
-          // Documentación dinámica con botones
+
           const docDiv = document.createElement('div');
 
           const getBtn = document.createElement('button');
@@ -107,7 +107,7 @@
             const res = await fetch(`/api/v1/users/${user._id}`, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ name: 'Nuevo Nombre' })
+              body: JSON.stringify({ name: 'Usuario' })
             });
             const data = await res.json();
             showResult(`user-result-${user._id}`, data);
